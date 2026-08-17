@@ -1,0 +1,90 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --color-bg: #ffffff;
+    --color-text: #1a1a2e;
+  }
+
+  body {
+    @apply bg-white text-gray-900 font-sans antialiased;
+  }
+
+  /* 代码高亮主题 */
+  pre {
+    @apply rounded-lg overflow-x-auto my-6 p-4 bg-gray-900 text-gray-100 text-sm leading-relaxed;
+  }
+
+  pre code {
+    @apply bg-transparent p-0 text-sm;
+  }
+
+  code {
+    @apply bg-gray-100 text-green-700 px-1.5 py-0.5 rounded text-sm font-mono;
+  }
+
+  /* Markdown 渲染样式 */
+  .prose-biojing h1 { @apply text-3xl font-bold mt-10 mb-4 text-gray-900; }
+  .prose-biojing h2 { @apply text-2xl font-bold mt-8 mb-3 text-gray-900 border-b border-gray-200 pb-2; }
+  .prose-biojing h3 { @apply text-xl font-semibold mt-6 mb-2 text-gray-800; }
+  .prose-biojing h4 { @apply text-lg font-semibold mt-4 mb-2 text-gray-800; }
+  .prose-biojing p { @apply my-4 leading-relaxed text-gray-700; }
+  .prose-biojing ul { @apply my-4 list-disc list-inside text-gray-700; }
+  .prose-biojing ol { @apply my-4 list-decimal list-inside text-gray-700; }
+  .prose-biojing li { @apply my-1; }
+  .prose-biojing blockquote {
+    @apply border-l-4 border-green-400 bg-green-50 px-4 py-2 my-4 italic text-gray-600 rounded-r;
+  }
+  .prose-biojing table {
+    @apply w-full my-6 border-collapse text-sm;
+  }
+  .prose-biojing th {
+    @apply bg-gray-50 border border-gray-200 px-4 py-2 text-left font-semibold text-gray-700;
+  }
+  .prose-biojing td {
+    @apply border border-gray-200 px-4 py-2 text-gray-600;
+  }
+  .prose-biojing tr:nth-child(even) {
+    @apply bg-gray-50;
+  }
+  .prose-biojing a {
+    @apply text-blue-600 underline hover:text-blue-800;
+  }
+  .prose-biojing hr {
+    @apply my-8 border-gray-200;
+  }
+  .prose-biojing img {
+    @apply max-w-full rounded-lg my-4;
+  }
+  .prose-biojing strong {
+    @apply font-bold text-gray-900;
+  }
+
+  /* Mermaid diagram container */
+  .mermaid-container {
+    @apply my-6 p-4 bg-gray-50 rounded-lg overflow-x-auto;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium;
+  }
+  .btn-secondary {
+    @apply px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium;
+  }
+  .btn-danger {
+    @apply px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium;
+  }
+  .input-field {
+    @apply w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none;
+  }
+  .card {
+    @apply bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow;
+  }
+  .tag {
+    @apply inline-block px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full font-medium;
+  }
+}

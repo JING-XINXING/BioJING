@@ -1,0 +1,133 @@
+// BioJING Database Schema
+// PostgreSQL for production, but the schema is also compatible with SQLite for local dev
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ============ 用户（管理员） ============
+model User {
+  id        String   @id @default(cuid())
+  username  String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ============ 博文系列 ============
+model Series {
+  id          String     @id @default(cuid())
+  name        String     @unique
+  slug        String     @unique
+  description String?
+  tagline     String?
+  coverImage  String?
+  sortOrder   Int        @default(0)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  posts       Post[]
+}
+
+// ============ 博文 ============
+model Post {
+  id          String      @id @default(cuid())
+  title       String
+  slug        String      @unique
+  content     String      // Markdown 原文
+  excerpt     String?
+  coverImage  String?
+  weekNumber  Int?
+  seriesId    String?
+  series      Series?     @relation(fields: [seriesId], references: [id])
+  status      String      @default("published") // draft | published | archived
+  charCount   Int         @default(0)
+  viewCount   Int         @default(0)
+  publishedAt DateTime    @default(now())
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  tags        PostTag[]
+  files       PostFile[]
+  comments    Comment[]
+  visits      VisitLog[]
+}
+
+// ============ 标签 ============
+model Tag {
+  id    String    @id @default(cuid())
+  name  String    @unique
+  slug  String    @unique
+  posts PostTag[]
+}
+
+model PostTag {
+  postId String
+  tagId  String
+  post   Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  tag    Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  @@id([postId, tagId])
+}
+
+// ============ 文件/资源 ============
+model PostFile {
+  id          String    @id @default(cuid())
+  postId      String?
+  post        Post?     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  filename    String
+  originalName String
+  mimeType    String
+  size        Int       // bytes
+  fileType    String    @default("attachment") // image | attachment | video | software | data
+  storagePath String    // relative path in uploads/
+  description String?
+  downloadCount Int     @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+// ============ 评论 ============
+model Comment {
+  id        String   @id @default(cuid())
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  author    String   @default("匿名")
+  email     String?
+  content   String
+  approved  Boolean  @default(true)
+  createdAt DateTime @default(now())
+}
+
+// ============ 访问统计 ============
+model VisitLog {
+  id        String   @id @default(cuid())
+  postId    String?
+  post      Post?    @relation(fields: [postId], references: [id], onDelete: Cascade)
+  path      String
+  ip        String?
+  userAgent String?
+  referer   String?
+  createdAt DateTime @default(now())
+}
+
+// ============ 站点设置 ============
+model SiteSetting {
+  id    String @id @default(cuid())
+  key   String @unique
+  value String
+}
+
+// ============ 备份记录 ============
+model BackupLog {
+  id         String   @id @default(cuid())
+  filename   String
+  size       Int      // bytes
+  type       String   // db | uploads | full
+  status     String   // success | failed
+  error      String?
+  createdAt  DateTime @default(now())
+}
