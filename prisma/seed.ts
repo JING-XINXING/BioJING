@@ -17,7 +17,10 @@ interface WeekSpec {
   filename: string;
 }
 
+const DRY_RUN = process.argv.includes('--dry-run');
+
 async function importPosts() {
+  if (DRY_RUN) console.log('（dry-run 模式：只输出将导入/更新的清单，不写库）\n');
   // 先校验环境变量再读规格文件，未配置时给可读报错而非晦涩的 ENOENT
   if (!BLOG_DIR) {
     console.error('请设置环境变量 BIOJING_BLOG_DIR 指向博文 Markdown 根目录后再导入。');
@@ -48,6 +51,11 @@ async function importPosts() {
   };
   for (const name of seriesNames) {
     const slug = seriesSlugMap[name] || name.replace(/[^a-zA-Z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '').toLowerCase();
+    if (DRY_RUN) {
+      seriesMap[name] = 'dry-run';
+      console.log(`  · Series: ${name} → ${slug}`);
+      continue;
+    }
     const series = await prisma.series.upsert({
       where: { name },
       update: { slug },
@@ -85,13 +93,18 @@ async function importPosts() {
       }
     }
 
-    // Extract tags from content
+    // Extract tags from content（跳过一级标题行，避免把文章标题误抓为标签）
+    const bodyWithoutH1 = content.split('\n').filter((l) => !l.startsWith('# ')).join('\n');
     const tagPattern = /#[一-龥\w]+/g;
-    const tagMatches = content.match(tagPattern) || [];
+    const tagMatches = bodyWithoutH1.match(tagPattern) || [];
     const tagNames = [...new Set(tagMatches.slice(0, 10).map((t) => t.slice(1)))];
 
-    // Upsert tags
+    // Upsert tags（dry-run 只计数不写库）
     const tagRecords: { id: string }[] = [];
+    if (DRY_RUN) {
+      console.log(`  · Week ${spec.num}: ${spec.title.slice(0, 60)}（标签 ${tagNames.length}：${tagNames.join(', ')}）`);
+      continue;
+    }
     for (const name of tagNames) {
       let tagSlug = name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
       if (!tagSlug) tagSlug = `tag-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;

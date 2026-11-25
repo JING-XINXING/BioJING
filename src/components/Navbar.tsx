@@ -34,6 +34,8 @@ export default function Navbar() {
           <div className="hidden md:flex items-center gap-6">
             <Link href="/posts" className="text-sm text-gray-600 hover:text-green-600 transition-colors">全部博文</Link>
             <Link href="/series" className="text-sm text-gray-600 hover:text-green-600 transition-colors">系列专题</Link>
+            <Link href="/paths" className="text-sm text-gray-600 hover:text-green-600 transition-colors">学习路径</Link>
+            <a href="/feed.xml" className="text-sm text-gray-600 hover:text-green-600 transition-colors">RSS</a>
             <Link href="/about" className="text-sm text-gray-600 hover:text-green-600 transition-colors">关于</Link>
             <form onSubmit={handleSearch} className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -59,6 +61,7 @@ export default function Navbar() {
             <div className="flex flex-col gap-3">
               <Link href="/posts" className="text-sm text-gray-600 hover:text-green-600" onClick={() => setOpen(false)}>全部博文</Link>
               <Link href="/series" className="text-sm text-gray-600 hover:text-green-600" onClick={() => setOpen(false)}>系列专题</Link>
+              <Link href="/paths" className="text-sm text-gray-600 hover:text-green-600" onClick={() => setOpen(false)}>学习路径</Link>
               <Link href="/about" className="text-sm text-gray-600 hover:text-green-600" onClick={() => setOpen(false)}>关于</Link>
               <form onSubmit={handleSearch} className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />

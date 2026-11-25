@@ -4,6 +4,7 @@ import PostContent from '@/components/PostContent';
 import PostSidebar from '@/components/PostSidebar';
 import CommentSection from '@/components/CommentSection';
 import PostToc from '@/components/PostToc';
+import VisitTracker from '@/components/VisitTracker';
 import { extractToc } from '@/lib/toc';
 import Link from 'next/link';
 
@@ -124,6 +125,8 @@ export default async function PostPage({ params }: { params: { slug: string } })
               </ul>
             </section>
           )}
+
+          <VisitTracker postId={post.id} path={`/posts/${post.slug}`} />
 
           {/* Article 结构化数据（SEO） */}
           <script

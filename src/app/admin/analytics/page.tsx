@@ -3,7 +3,18 @@ import { Eye, TrendingUp, Users, Download, FileText } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
 
+interface DailyVisit { day: string; count: number }
+
 export default async function AdminAnalyticsPage() {
+  // 近 14 天按日访问量：直接对 VisitLog 做日期聚合，不再全量拉日志到内存
+  const daily = await prisma.$queryRaw<DailyVisit[]>`
+    SELECT date(createdAt) AS day, COUNT(*) AS count
+    FROM VisitLog
+    WHERE createdAt >= date('now', '-13 days')
+    GROUP BY date(createdAt)
+    ORDER BY day ASC
+  `;
+  const maxDaily = Math.max(1, ...daily.map((d) => Number(d.count)));
   const [totalViews, totalComments, totalDownloads, postCount, topPosts, recentVisits] = await Promise.all([
     prisma.post.aggregate({ _sum: { viewCount: true } }),
     prisma.comment.count(),
@@ -64,20 +75,24 @@ export default async function AdminAnalyticsPage() {
         </div>
       </div>
 
-      {/* Placeholder charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-        <div className="card p-5">
-          <h3 className="font-semibold text-gray-900 mb-4">浏览量趋势</h3>
-          <div className="h-48 bg-gray-50 rounded-lg flex items-center justify-center text-gray-400 text-sm">
-            📊 浏览量趋势图（部署后采集数据）
+      {/* 近 14 天访问趋势（按日聚合） */}
+      <div className="card p-5 mt-6">
+        <h3 className="font-semibold text-gray-900 mb-4">近 14 天访问趋势</h3>
+        {daily.length === 0 ? (
+          <p className="text-sm text-gray-400">暂无访问记录（文章页与 CTA 已埋点，数据随访问累积）</p>
+        ) : (
+          <div className="space-y-2">
+            {daily.map((d) => (
+              <div key={d.day} className="flex items-center gap-3 text-xs">
+                <span className="w-20 text-gray-400 shrink-0">{d.day}</span>
+                <div className="flex-1 h-4 bg-gray-50 rounded">
+                  <div className="h-4 bg-green-600 rounded" style={{ width: `${(Number(d.count) / maxDaily) * 100}%` }} />
+                </div>
+                <span className="w-10 text-right text-gray-500">{Number(d.count)}</span>
+              </div>
+            ))}
           </div>
-        </div>
-        <div className="card p-5">
-          <h3 className="font-semibold text-gray-900 mb-4">下载量分布</h3>
-          <div className="h-48 bg-gray-50 rounded-lg flex items-center justify-center text-gray-400 text-sm">
-            📥 下载量分布图（部署后采集数据）
-          </div>
-        </div>
+        )}
       </div>
     </div>
   );
