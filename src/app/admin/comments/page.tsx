@@ -1,4 +1,5 @@
 import prisma from '@/lib/prisma';
+import CommentActions from '@/components/CommentActions';
 
 export const dynamic = 'force-dynamic';
 
@@ -22,6 +23,7 @@ export default async function AdminCommentsPage() {
                 <th className="px-4 py-3 font-medium text-gray-600">所属文章</th>
                 <th className="px-4 py-3 font-medium text-gray-600">时间</th>
                 <th className="px-4 py-3 font-medium text-gray-600">状态</th>
+                <th className="px-4 py-3 font-medium text-gray-600">操作</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -40,6 +42,7 @@ export default async function AdminCommentsPage() {
                       {c.approved ? '已通过' : '待审核'}
                     </span>
                   </td>
+                  <td className="px-4 py-3"><CommentActions id={c.id} approved={c.approved} /></td>
                 </tr>
               ))}
             </tbody>

@@ -34,10 +34,10 @@ export default function CommentSection({
       });
       const data = await res.json();
       if (res.ok) {
-        setComments([data, ...comments]);
+        // 评论默认待审核，后台放行后才显示，不直接插入列表
         setAuthor('');
         setContent('');
-        toast.success('评论提交成功！');
+        toast.success('评论已提交，审核通过后显示');
       } else {
         toast.error(data.error || '提交失败');
       }
