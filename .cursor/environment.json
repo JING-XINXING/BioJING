@@ -1,0 +1,6 @@
+{
+  "name": "BioJING",
+  "install": "bash scripts/cloud-agent-install.sh",
+  "start": "bash .cursor/start.sh",
+  "ports": [30001]
+}

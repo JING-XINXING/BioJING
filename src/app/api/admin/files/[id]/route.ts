@@ -1,11 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { isAdminRequest } from '@/lib/auth';
 import { unlink } from 'fs/promises';
 import path from 'path';
 
-const UPLOAD_DIR = path.join(process.cwd(), '..', 'uploads');
+// 与上传接口统一：项目内 uploads/（被 .gitignore 忽略）
+const UPLOAD_DIR = path.join(process.cwd(), 'uploads');
 
 export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+  if (!(await isAdminRequest(req))) return NextResponse.json({ error: '未授权，请先登录' }, { status: 401 });
   try {
     const file = await prisma.postFile.findUnique({ where: { id: params.id } });
     if (file) {

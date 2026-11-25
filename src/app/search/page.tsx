@@ -3,28 +3,47 @@ import PostCard from '@/components/PostCard';
 
 export const dynamic = 'force-dynamic';
 
+const SEARCH_PAGE_SIZE = 12;
+/** 单次查询上界，防止大结果集全量返回（v1.2 R4）。 */
+const SEARCH_FETCH_CAP = 200;
+
 export default async function SearchPage({
   searchParams,
 }: {
-  searchParams: { q?: string };
+  searchParams: { q?: string; page?: string };
 }) {
   const query = searchParams.q?.trim() || '';
+  const page = Math.max(1, parseInt(searchParams.page || '1') || 1);
 
-  let posts: any[] = [];
+  type PostRow = Awaited<ReturnType<typeof prisma.post.findMany>>[number];
+  let total = 0;
+  let pagePosts: PostRow[] = [];
+  let totalPages = 1;
   if (query) {
-    posts = await prisma.post.findMany({
-      where: {
-        status: 'published',
-        OR: [
-          { title: { contains: query } },
-          { content: { contains: query } },
-          { excerpt: { contains: query } },
-        ],
-      },
-      orderBy: { weekNumber: 'desc' },
-      include: { series: true, tags: { include: { tag: true } } },
-    });
+    const include = { series: true, tags: { include: { tag: true } } } as const;
+    // 标题命中优先、正文命中其次，合并去重后分页
+    const [titleHits, contentHits] = await Promise.all([
+      prisma.post.findMany({
+        where: { status: 'published', title: { contains: query } },
+        orderBy: { weekNumber: 'desc' }, take: SEARCH_FETCH_CAP, include,
+      }),
+      prisma.post.findMany({
+        where: { status: 'published', OR: [{ content: { contains: query } }, { excerpt: { contains: query } }] },
+        orderBy: { weekNumber: 'desc' }, take: SEARCH_FETCH_CAP, include,
+      }),
+    ]);
+    const seen = new Set<string>();
+    const merged: PostRow[] = [];
+    for (const post of [...titleHits, ...contentHits]) {
+      if (seen.has(post.id)) continue;
+      seen.add(post.id);
+      merged.push(post);
+    }
+    total = merged.length;
+    totalPages = Math.max(1, Math.ceil(total / SEARCH_PAGE_SIZE));
+    pagePosts = merged.slice((page - 1) * SEARCH_PAGE_SIZE, page * SEARCH_PAGE_SIZE);
   }
+  const posts = pagePosts;
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -46,7 +65,7 @@ export default async function SearchPage({
 
       {query ? (
         <div>
-          <p className="text-gray-500 mb-6">找到 {posts.length} 篇相关文章</p>
+          <p className="text-gray-500 mb-6">找到 {total} 篇相关文章（第 {page}/{totalPages} 页）</p>
           {posts.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {posts.map((post) => (
@@ -57,6 +76,17 @@ export default async function SearchPage({
             <div className="text-center py-16 text-gray-400">
               <p className="text-lg">没有找到相关文章</p>
               <p className="text-sm mt-2">试试其他关键词</p>
+            </div>
+          )}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-2 mt-10">
+              {page > 1 && (
+                <a href={`/search?q=${encodeURIComponent(query)}&page=${page - 1}`} className="btn-secondary text-sm">上一页</a>
+              )}
+              <span className="text-sm text-gray-400">{page} / {totalPages}</span>
+              {page < totalPages && (
+                <a href={`/search?q=${encodeURIComponent(query)}&page=${page + 1}`} className="btn-secondary text-sm">下一页</a>
+              )}
             </div>
           )}
         </div>

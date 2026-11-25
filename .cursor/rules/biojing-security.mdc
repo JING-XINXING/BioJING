@@ -1,0 +1,14 @@
+---
+description: BioJING 安全红线（认证、上传、Markdown 渲染、评论与统计接口）
+alwaysApply: false
+globs: src/app/api/**/*.ts, src/lib/*.ts, src/middleware.ts, src/components/PostContent.tsx, src/components/CommentSection.tsx
+---
+
+# BioJING 安全红线
+
+- 认证：管理 API（`/api/admin/*`）必须逐个做服务端身份校验，不能只依赖页面中间件。登录态不得使用明文口令作 Cookie 值；目标方案为签名/随机会话令牌 + `httpOnly` + 过期时间，口令比较用常量时间比较或 `bcryptjs` 校验哈希（依赖已在 `package.json` 中）。
+- 输入校验：所有 API 入参做类型、长度、枚举校验后再写库；评论须限长、限频，默认待审核（不得默认 `approved: true` 直接公开）。统计接口不得信任客户端上报的 `ip` 等字段。
+- 文件上传：必须做扩展名与 MIME 白名单、大小上限、文件名净化，禁止 `.html/.svg/.js` 等可执行/可脚本化类型；存储路径用服务端生成路径并防目录穿越，`uploads/` 位于仓库外或被 gitignore 的目录，路径构造不得直接拼接用户输入。
+- Markdown 渲染：`rehype-raw` 渲染文章 HTML 前必须经 sanitize（如 `rehype-sanitize`），否则为存储型 XSS；评论内容一律走 React 文本转义，禁止 `dangerouslySetInnerHTML`。
+- 输出与配置：`next.config.js` 的 `images.remotePatterns` 禁止 `hostname: '**'` 通配；错误响应不回传堆栈与内部路径；日志不打印口令、Cookie、完整上传路径等敏感信息。
+- 改动上述文件后，至少补充/运行：未授权调用管理 API 应返回 401/403、超限/非法类型上传被拒、含脚本的 Markdown 被净化——三类回归测试之一并在交付说明中给出命令。

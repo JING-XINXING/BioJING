@@ -2,9 +2,11 @@ import prisma from '@/lib/prisma';
 import Link from 'next/link';
 import PostCard from '@/components/PostCard';
 import SeriesCard from '@/components/SeriesCard';
+import CtaLink from '@/components/CtaLink';
 import { Dna, BookOpen, TrendingUp, Search } from 'lucide-react';
 
-export const dynamic = 'force-dynamic';
+// ISR：公开页每小时再验证（v1.2 R1）
+export const revalidate = 3600;
 
 export default async function HomePage() {
   const [featuredPosts, series, stats] = await Promise.all([
@@ -103,9 +105,9 @@ export default async function HomePage() {
               提供转录组、单细胞、空间转录组、表观遗传、基因组、免疫组库、蛋白质组、代谢组等全方位生物信息学分析服务。
               支持定制化分析方案与论文投稿修改。
             </p>
-            <Link href="/about" className="inline-block mt-6 px-6 py-3 bg-white text-green-700 rounded-lg font-semibold hover:bg-green-50 transition-colors">
+            <CtaLink href="/about" className="inline-block mt-6 px-6 py-3 bg-white text-green-700 rounded-lg font-semibold hover:bg-green-50 transition-colors">
               了解更多
-            </Link>
+            </CtaLink>
           </div>
         </div>
       </section>

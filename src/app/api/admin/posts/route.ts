@@ -1,7 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { isAdminRequest } from '@/lib/auth';
 
-export async function GET() {
+/** 管理 API 第二层鉴权（中间件为第一层）。 */
+async function denyIfNotAdmin(req: NextRequest) {
+  return (await isAdminRequest(req)) ? null : NextResponse.json({ error: '未授权，请先登录' }, { status: 401 });
+}
+
+export async function GET(req: NextRequest) {
+  const deny = await denyIfNotAdmin(req); if (deny) return deny;
   const posts = await prisma.post.findMany({
     orderBy: { weekNumber: 'desc' },
   });
@@ -9,6 +16,7 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
+  const deny = await denyIfNotAdmin(req); if (deny) return deny;
   try {
     const data = await req.json();
     const { title, slug, content, excerpt, seriesId, weekNumber, status, charCount, tags: tagNames } = data;
@@ -56,6 +64,7 @@ export async function POST(req: NextRequest) {
 }
 
 export async function PUT(req: NextRequest) {
+  const deny = await denyIfNotAdmin(req); if (deny) return deny;
   try {
     const data = await req.json();
     const { id, title, slug, content, excerpt, seriesId, weekNumber, status, charCount, tags: tagNames } = data;
@@ -94,6 +103,7 @@ export async function PUT(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
+  const deny = await denyIfNotAdmin(req); if (deny) return deny;
   const { id } = await req.json();
   await prisma.post.delete({ where: { id } });
   return NextResponse.json({ ok: true });

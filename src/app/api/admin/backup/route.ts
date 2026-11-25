@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { isAdminRequest } from '@/lib/auth';
 
 export async function POST(req: NextRequest) {
+  if (!(await isAdminRequest(req))) return NextResponse.json({ error: '未授权，请先登录' }, { status: 401 });
   try {
     const formData = await req.formData();
     const type = formData.get('type') as string || 'db';
@@ -57,7 +59,8 @@ async function exportDatabase() {
   // Save to file
   const { mkdir, writeFile } = await import('fs/promises');
   const { join } = await import('path');
-  const backupDir = join(process.cwd(), '..', 'backups');
+  // 与 scripts/backup.ts 统一：项目内 backups/（被 .gitignore 忽略）
+  const backupDir = join(process.cwd(), 'backups');
   await mkdir(backupDir, { recursive: true });
 
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-');

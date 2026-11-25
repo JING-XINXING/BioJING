@@ -55,6 +55,9 @@ model Post {
   files       PostFile[]
   comments    Comment[]
   visits      VisitLog[]
+
+  @@index([status, weekNumber])
+  @@index([seriesId])
 }
 
 // ============ 标签 ============
@@ -88,6 +91,8 @@ model PostFile {
   downloadCount Int     @default(0)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+
+  @@index([postId])
 }
 
 // ============ 评论 ============
@@ -98,8 +103,10 @@ model Comment {
   author    String   @default("匿名")
   email     String?
   content   String
-  approved  Boolean  @default(true)
+  approved  Boolean  @default(false) // 默认待审核，后台放行后才公开
   createdAt DateTime @default(now())
+
+  @@index([postId, approved])
 }
 
 // ============ 访问统计 ============
@@ -112,6 +119,9 @@ model VisitLog {
   userAgent String?
   referer   String?
   createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([postId])
 }
 
 // ============ 站点设置 ============

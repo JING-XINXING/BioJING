@@ -1,0 +1,14 @@
+---
+description: BioJING 项目核心约定（技术栈、端口、目录、数据库安全）
+alwaysApply: true
+---
+
+# BioJING 核心约定
+
+- 技术栈：Next.js 14 App Router + React 18 + TypeScript（strict）+ Tailwind CSS 3 + Prisma 5 + SQLite（本地）/ PostgreSQL（生产规划）。回复与注释用中文，代码注释只写非显而易见的意图。
+- 端口：开发/生产服务固定 **30001**（`package.json` 的 dev/start）。禁止改用 3000/8000；新服务端口从 10000–90000 中另选未用端口并在此登记。已用：30001（BioJING Web）。
+- 目录：页面 `src/app/`、组件 `src/components/`、工具 `src/lib/`、API `src/app/api/`、数据模型 `prisma/schema.prisma`、运维脚本 `scripts/`、测试 `test/`、文档 `docs/`。测试代码只放 `test/`，生成的 Markdown 文档只放 `docs/`，不要在仓库根目录散落文档。
+- 数据库红线：任何 schema 变更、数据迁移、批量改数据前，**必须先备份**（`npm run backup` 或 `npx tsx scripts/backup.ts full` 并确认 `backups/` 落盘成功），再执行 `prisma migrate dev`；禁止对已有数据的库直接 `db push` 覆盖。本地 `prisma/dev.db`、`.env`、`uploads/`、`backups/` 均被 gitignore，不得入库。
+- 秘钥红线：管理员口令等秘密只从 `.env`/环境变量读取（见 `src/lib/auth.ts`），禁止硬编码、禁止提交真实 `.env`；改动认证相关代码后必须跑脱敏测试 `python3 -m pytest test/test_desensitization.py test/test_gitignore_secrets.py -q`。
+- 已知高危（修复前不得扩大）：`src/middleware.ts` 仅保护 `/admin` 页面、**不保护 `/api/admin/*`**；修复时须在中间件 matcher 或每个管理 API 内做服务端校验，并补未授权访问的回归测试。
+- 导入博文：`BIOJING_BLOG_DIR` 指向 Markdown 根目录后运行 `npx tsx prisma/seed.ts`（即 `npm run db:seed`）；`package.json` 的 `import:posts` 指向不存在的脚本，勿用，待 v1.0.1 修复。

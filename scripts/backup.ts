@@ -5,6 +5,7 @@
 import { PrismaClient } from '@prisma/client';
 import * as fs from 'fs/promises';
 import * as path from 'path';
+import * as crypto from 'crypto';
 
 const prisma = new PrismaClient();
 
@@ -38,7 +39,29 @@ async function backup(type: 'db' | 'full' = 'db') {
 
     const filename = `backup-${type}-${timestamp}.json`;
     const filepath = path.join(backupDir, filename);
-    await fs.writeFile(filepath, JSON.stringify(exportData, null, 2), 'utf8');
+    const payload = JSON.stringify(exportData, null, 2);
+    await fs.writeFile(filepath, payload, 'utf8');
+
+    // SHA-256 校验文件 + 记录计数清单，供恢复时核对（v1.1 E4）
+    const sha256 = crypto.createHash('sha256').update(payload).digest('hex');
+    await fs.writeFile(`${filepath}.sha256`, `${sha256}  ${filename}\n`, 'utf8');
+    const counts = {
+      posts: posts.length, series: series.length, tags: tags.length,
+      comments: comments.length, files: files.length, settings: settings.length,
+    };
+    console.log(`  记录计数: ${JSON.stringify(counts)}，SHA-256: ${sha256.slice(0, 12)}…`);
+
+    // 完整备份：同时复制 uploads/ 到同名目录（旧实现只导出 JSON，恢复不了文件）
+    if (type === 'full') {
+      const uploadsDir = path.join(__dirname, '..', 'uploads');
+      const target = path.join(backupDir, `backup-full-${timestamp}-uploads`);
+      try {
+        await fs.cp(uploadsDir, target, { recursive: true });
+        console.log(`  已打包 uploads/ → ${path.basename(target)}`);
+      } catch {
+        console.log('  uploads/ 不存在，跳过文件打包');
+      }
+    }
 
     const stats = await fs.stat(filepath);
 

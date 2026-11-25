@@ -66,6 +66,11 @@
   .mermaid-container {
     @apply my-6 p-4 bg-gray-50 rounded-lg overflow-x-auto;
   }
+
+  /* Mermaid 的 pre 只是 SVG 载体，须覆盖全局 pre 深色代码块样式 */
+  .mermaid-container pre.mermaid {
+    @apply bg-transparent text-gray-800 p-0 my-0 rounded-none overflow-visible;
+  }
 }
 
 @layer components {

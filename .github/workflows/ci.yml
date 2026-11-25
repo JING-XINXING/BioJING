@@ -1,0 +1,41 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: 安装依赖
+        run: |
+          npm ci
+          npx prisma generate
+          pip install pytest
+      - name: 类型检查
+        run: npm run typecheck
+      - name: Lint
+        run: npm run lint
+      - name: 单元测试
+        run: npm run test:unit
+      - name: 初始化空库（供 ISR/sitemap 构建期查询）
+        run: |
+          cp .env.example .env
+          sed -i 's|^DATABASE_URL=.*|DATABASE_URL="file:./dev.db"|' .env
+          npx prisma db push --skip-generate
+      - name: 生产构建
+        run: npm run build
+      - name: 脱敏与忽略规则测试（不依赖本地库）
+        run: python3 -m pytest test/test_desensitization.py test/test_gitignore_secrets.py -q
+      # 依赖审计：Next 14 框架级公告只能靠大版本升级修复（见 docs 升级计划 v2.0），先报告不阻断
+      - name: 依赖审计（报告）
+        run: npm audit --audit-level=high
+        continue-on-error: true

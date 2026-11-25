@@ -3,7 +3,8 @@ import prisma from '@/lib/prisma';
 import path from 'path';
 import { readFile } from 'fs/promises';
 
-const UPLOAD_DIR = path.join(process.cwd(), '..', 'uploads');
+// 与上传接口统一：项目内 uploads/（被 .gitignore 忽略）
+const UPLOAD_DIR = path.join(process.cwd(), 'uploads');
 
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   const file = await prisma.postFile.findUnique({ where: { id: params.id } });

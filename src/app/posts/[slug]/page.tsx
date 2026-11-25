@@ -3,8 +3,13 @@ import { notFound } from 'next/navigation';
 import PostContent from '@/components/PostContent';
 import PostSidebar from '@/components/PostSidebar';
 import CommentSection from '@/components/CommentSection';
+import PostToc from '@/components/PostToc';
+import VisitTracker from '@/components/VisitTracker';
+import { extractToc } from '@/lib/toc';
+import Link from 'next/link';
 
-export const dynamic = 'force-dynamic';
+// 公开文章页 ISR：每小时再验证一次（后台改文最迟 1 小时生效，常态由浏览触发；见计划 v1.2 R1）
+export const revalidate = 3600;
 
 export default async function PostPage({ params }: { params: { slug: string } }) {
   const post = await prisma.post.findUnique({
@@ -42,6 +47,15 @@ export default async function PostPage({ params }: { params: { slug: string } })
     : [null, null];
 
   const readingTime = Math.ceil((post.charCount || 0) / 800) || 10;
+  const toc = extractToc(post.content);
+
+  // 相关推荐：同系列其他已发布文章（无系列时取最新）
+  const related = await prisma.post.findMany({
+    where: { status: 'published', id: { not: post.id }, ...(post.seriesId ? { seriesId: post.seriesId } : {}) },
+    orderBy: { weekNumber: 'desc' },
+    take: 4,
+    select: { title: true, slug: true, weekNumber: true },
+  });
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -96,14 +110,49 @@ export default async function PostPage({ params }: { params: { slug: string } })
             </div>
           )}
 
+          {/* Related posts */}
+          {related.length > 0 && (
+            <section className="mt-12 pt-8 border-t border-gray-200">
+              <h3 className="text-lg font-bold text-gray-900 mb-4">相关推荐</h3>
+              <ul className="space-y-2">
+                {related.map((r) => (
+                  <li key={r.slug}>
+                    <Link href={`/posts/${r.slug}`} className="text-sm text-gray-600 hover:text-green-700">
+                      {r.weekNumber ? `Week ${r.weekNumber} · ` : ''}{r.title}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+
+          <VisitTracker postId={post.id} path={`/posts/${post.slug}`} />
+
+          {/* Article 结构化数据（SEO） */}
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify({
+                '@context': 'https://schema.org',
+                '@type': 'Article',
+                headline: post.title,
+                description: post.excerpt || post.title,
+                datePublished: post.publishedAt,
+              }),
+            }}
+          />
+
           {/* Comments */}
           <section className="mt-10 pt-8 border-t border-gray-200">
             <CommentSection postId={post.id} initialComments={post.comments} />
           </section>
         </article>
 
-        {/* Sidebar */}
-        <PostSidebar post={post} />
+        {/* Sidebar：目录在桌面端粘性展示、移动端折叠到正文上方由 PostToc 内部处理 */}
+        <div className="lg:w-72 shrink-0 space-y-6">
+          <PostToc items={toc} />
+          <PostSidebar post={post} />
+        </div>
       </div>
     </div>
   );
@@ -112,8 +161,12 @@ export default async function PostPage({ params }: { params: { slug: string } })
 export async function generateMetadata({ params }: { params: { slug: string } }) {
   const post = await prisma.post.findUnique({ where: { slug: params.slug } });
   if (!post) return { title: '404 - 文章未找到' };
+  const description = post.excerpt || post.title;
   return {
     title: post.title,
-    description: post.excerpt || post.title,
+    description,
+    alternates: { canonical: `/posts/${params.slug}` },
+    openGraph: { title: post.title, description, type: 'article', publishedTime: post.publishedAt.toISOString() },
+    twitter: { card: 'summary', title: post.title, description },
   };
 }
