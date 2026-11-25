@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="data:,">
+<title>BioJING 版本升级计划（v1.0.1 → v2.0）</title>
+<style>
+  /* Lab 设计令牌：白底实验台、深墨文字、生信绿+数据蓝双 accent，无渐变 */
+  :root{
+    --ink:#16211b; --ink-2:#43534a; --ink-3:#71807a;
+    --paper:#ffffff; --bench:#f4f7f4; --line:#d9e2db;
+    --lab-green:#15803d; --lab-green-dark:#14532d; --data-blue:#1d4ed8;
+    --danger:#b91c1c; --warn:#b45309; --note:#5b6ee1;
+    --radius:10px;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--bench);color:var(--ink);
+    font-family:"Source Han Sans SC","Noto Sans CJK SC","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+    font-size:16px;line-height:1.75;-webkit-font-smoothing:antialiased}
+  /* 顶栏与正文同宽（1040px）居中 */
+  .topbar{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.96);border-bottom:1px solid var(--line)}
+  .topbar-in{max-width:1040px;margin:0 auto;padding:0 24px;height:56px;display:flex;align-items:center;gap:16px}
+  .brand{font-weight:700;letter-spacing:.02em;color:var(--lab-green-dark);white-space:nowrap}
+  .brand b{color:var(--ink)}
+  .topnav{margin-left:auto;display:flex;gap:18px;font-size:13.5px}
+  .topnav a{color:var(--ink-2);text-decoration:none}
+  .topnav a:hover{color:var(--lab-green)}
+  /* 正文栏 1040px */
+  .wrap{max-width:1040px;margin:0 auto;padding:0 24px 72px}
+  /* 封面高度跟内容走（禁止整屏撑高） */
+  .cover{background:var(--paper);border:1px solid var(--line);border-top:3px solid var(--lab-green);
+    border-radius:var(--radius);margin-top:28px;padding:36px 40px 30px}
+  .kicker{font-size:12.5px;letter-spacing:.14em;color:var(--lab-green);font-weight:700;margin:0 0 14px}
+  /* 主标题栏约 420px，字号 34px */
+  .cover h1{max-width:420px;font-size:34px;line-height:1.3;margin:0 0 16px;font-weight:800}
+  .cover .lede{max-width:720px;color:var(--ink-2);margin:0 0 22px;font-size:16.5px}
+  .meta{display:flex;flex-wrap:wrap;gap:8px 26px;border-top:1px solid var(--line);padding-top:16px;font-size:13.5px;color:var(--ink-3)}
+  .meta b{color:var(--ink-2);font-weight:600}
+  .verdict{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:20px}
+  .verdict div{background:var(--bench);border:1px solid var(--line);border-radius:8px;padding:12px 14px}
+  .verdict .n{font-size:22px;font-weight:800;line-height:1.2}
+  .verdict .t{font-size:12.5px;color:var(--ink-3)}
+  .c-danger{color:var(--danger)} .c-warn{color:var(--warn)} .c-green{color:var(--lab-green)} .c-blue{color:var(--data-blue)}
+  section.card{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);margin-top:20px;padding:30px 40px}
+  h2{font-size:23px;margin:4px 0 8px;line-height:1.4}
+  h2 .no{color:var(--lab-green);font-family:ui-monospace,"JetBrains Mono",monospace;font-size:15px;margin-right:10px}
+  h3{font-size:17.5px;margin:26px 0 8px}
+  p{margin:8px 0}
+  .sub{color:var(--ink-3);font-size:14px;margin-top:0}
+  table{width:100%;border-collapse:collapse;font-size:14px;margin:14px 0}
+  th{background:var(--bench);text-align:left;padding:9px 10px;border:1px solid var(--line);font-weight:700;white-space:nowrap}
+  td{padding:9px 10px;border:1px solid var(--line);vertical-align:top}
+  .tbl-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  code{font-family:ui-monospace,"JetBrains Mono",monospace;font-size:.86em;background:var(--bench);
+    border:1px solid var(--line);border-radius:4px;padding:1px 5px;word-break:break-all}
+  .tag{display:inline-block;font-size:11.5px;font-weight:700;border-radius:4px;padding:1px 7px;line-height:1.7;white-space:nowrap}
+  .p0{background:#fdecec;color:var(--danger)} .p1{background:#fdf3e3;color:var(--warn)}
+  .p2{background:#eef2ff;color:var(--note)} .p3{background:#e9f6ee;color:var(--lab-green)}
+  .ok{background:#e9f6ee;color:var(--lab-green)} .bad{background:#fdecec;color:var(--danger)}
+  /* 路线图 */
+  .road{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin:16px 0 6px}
+  .road div{border:1px solid var(--line);border-top:3px solid var(--lab-green);border-radius:8px;padding:12px;background:var(--paper)}
+  .road div:nth-child(1){border-top-color:var(--danger)}
+  .road .v{font-weight:800;font-size:15px}
+  .road .th{font-size:13px;font-weight:600;margin:2px 0}
+  .road .d{font-size:12.5px;color:var(--ink-3);line-height:1.55}
+  .callout{border-left:3px solid var(--danger);background:#fdf6f6;padding:12px 16px;border-radius:0 8px 8px 0;margin:16px 0;font-size:14.5px}
+  .callout.green{border-left-color:var(--lab-green);background:#f3f9f4}
+  ul{margin:8px 0;padding-left:22px} li{margin:4px 0}
+  footer{max-width:1040px;margin:0 auto;padding:0 24px 40px;color:var(--ink-3);font-size:13px}
+  @media (max-width:760px){
+    .wrap{padding:0 14px 48px}
+    .cover{padding:26px 20px 22px}
+    .cover h1{font-size:28px;max-width:100%}
+    section.card{padding:22px 18px}
+    .topnav{display:none}
+    .verdict{grid-template-columns:repeat(2,1fr)}
+    .road{grid-template-columns:1fr}
+    table{font-size:13px}
+  }
+</style>
+</head>
+<body>
+<header class="topbar"><div class="topbar-in">
+  <span class="brand">Bio<b>JING</b> · 实验室报告</span>
+  <nav class="topnav">
+    <a href="#summary">执行摘要</a><a href="#status">现状盘点</a><a href="#issues">问题清单</a>
+    <a href="#roadmap">版本路线</a><a href="#gates">发布门禁</a><a href="#appendix">附录</a>
+  </nav>
+</div></header>
+
+<div class="wrap">
+  <!-- 封面：高度随内容 -->
+  <div class="cover">
+    <p class="kicker">TECHNICAL REVIEW · 版本升级计划</p>
+    <h1>BioJING 版本升级计划</h1>
+    <p class="lede">对生信硬核科普站当前公开版（v1.0.0）的功能、安全与工程化全面体检：先修可被直接利用的高危漏洞，再补齐可部署、可恢复、可增长的工程底座。</p>
+    <div class="meta">
+      <span>基线 <b>main @ 4a6b575</b></span><span>日期 <b>2026-11-25</b></span>
+      <span>范围 <b>v1.0.1 → v2.0</b></span><span>配套 <b>同名 MD 文档</b></span>
+    </div>
+    <div class="verdict">
+      <div><div class="n c-danger">3 项 P0</div><div class="t">上线阻断：管理 API 零鉴权已实证可利用</div></div>
+      <div><div class="n c-warn">5 项 P1</div><div class="t">构建已修复；Mermaid、XSS、备份恢复待修</div></div>
+      <div><div class="n c-blue">7 项 P2</div><div class="t">性能、SEO、测试与依赖治理</div></div>
+      <div><div class="n c-green">5 个版本</div><div class="t">热修复 → 工程化 → 体验 → 增长 → 平台化</div></div>
+    </div>
+  </div>
+
+  <section class="card" id="summary">
+    <h2><span class="no">01</span>执行摘要</h2>
+    <p>BioJING 当前功能完整：52 篇系列博文展示、搜索、评论、资源下载与管理后台均已实现，选型与内容规模匹配，代码约 1,800 行、结构清晰。但实测确认它<strong>尚不具备公网长期运行条件</strong>，核心结论四条：</p>
+    <ul>
+      <li><strong>高危漏洞可直接利用（P0）：</strong>管理页面有密码保护，但全部管理 API 无服务端校验。本地实证：不带凭证 <code>GET /api/admin/posts</code> 返回 200、<code>POST</code> 成功建文（自检数据已清理）。任何人可绕过后台增删文章、上传文件。</li>
+      <li><strong>公开版一度无法生产构建（P1，已修复）：</strong><code>tsconfig.json</code> 缺 <code>target</code> 致 <code>next build</code> 报 TS2802；本次已修复并复验通过。根因是缺少 CI 门禁。</li>
+      <li><strong>三处功能性缺陷：</strong>Mermaid 图表从未加载渲染；Markdown 经 <code>rehype-raw</code> 直出未净化（存储型 XSS 面）；评论默认直接公开，后台审核形同虚设。</li>
+      <li><strong>增长与运维缺位：</strong>全站强制动态渲染、无 sitemap/RSS/OG；备份无恢复与校验；测试仅 3 个耦合本地状态的 pytest，无 CI、无 lint、无容器化。</li>
+    </ul>
+    <div class="callout green">本次已落地：Cursor Agent 开发环境（<code>.cursor/environment.json</code>、幂等 install/start 脚本、三份项目规则、<code>AGENTS.md</code>）与生产构建修复；云端环境已完成草案构建验证并提案，待在环境面板保存。业务功能与数据库结构本次未动。</div>
+  </section>
+
+  <section class="card" id="status">
+    <h2><span class="no">02</span>现状盘点</h2>
+    <p class="sub">方法：通读全部源码 + 构建/运行/未授权探针实测，证据见附录索引（文件:行号）。</p>
+    <div class="tbl-scroll"><table>
+      <tr><th>域</th><th>功能</th><th>状态</th><th>备注</th></tr>
+      <tr><td>公开</td><td>首页、博文列表（筛选+分页）、系列页</td><td><span class="tag ok">可用</span></td><td>服务端组件直查库</td></tr>
+      <tr><td>公开</td><td>博文详情（高亮、表格、上下篇、阅读时长）</td><td><span class="tag p1">有缺陷</span></td><td>Mermaid 不渲染；无目录 TOC</td></tr>
+      <tr><td>公开</td><td>全文搜索</td><td><span class="tag p1">有缺陷</span></td><td>全表扫描、结果无上限</td></tr>
+      <tr><td>公开</td><td>评论</td><td><span class="tag p0">高危</span></td><td>默认公开、无限长限频</td></tr>
+      <tr><td>公开</td><td>资源下载（计数）</td><td><span class="tag ok">可用</span></td><td>路径与类型校验待加固</td></tr>
+      <tr><td>后台</td><td>登录、仪表盘、文章/系列/文件/评论管理、统计、备份、设置</td><td><span class="tag p0">高危</span></td><td>页面齐，API 层未鉴权；统计/备份半成品</td></tr>
+      <tr><td>运维</td><td>备份脚本、启动脚本、脱敏/忽略测试</td><td><span class="tag p1">有缺陷</span></td><td>无恢复；两套备份路径不一致</td></tr>
+    </table></div>
+    <h3>技术基线</h3>
+    <ul>
+      <li>单体 Next.js 14.2 + React 18.3 + Prisma 5.14 + SQLite，Tailwind 3.4；依赖均已落后主流大版本，<code>npm audit</code> 报 7 个漏洞（1 critical、4 high）。</li>
+      <li>数据模型 10 个：状态字段为裸字符串无枚举约束，高频查询字段无索引，<code>User</code> 模型与 <code>bcryptjs</code> 全仓未使用。</li>
+      <li><code>next.config.js</code> 埋有未触发地雷：<code>raw-loader</code> 规则与 <code>sharp</code> 声明均无对应已装依赖；图床为 <code>https + **</code> 通配。</li>
+      <li>端口 dev/start 固定 30001，符合避开 3000/8000 约定，登记保留。</li>
+    </ul>
+  </section>
+
+  <section class="card" id="issues">
+    <h2><span class="no">03</span>问题清单</h2>
+    <h3><span class="tag p0">P0</span> 上线阻断（安全）</h3>
+    <div class="tbl-scroll"><table>
+      <tr><th>ID</th><th>问题</th><th>证据</th><th>影响</th></tr>
+      <tr><td>P0-1</td><td>管理 API 零鉴权（中间件仅护 <code>/admin</code> 页面）</td><td><code>src/middleware.ts:5-17</code>；实测未授权 GET 200 / POST 建文成功</td><td>任意访客可篡改删除内容、任意上传</td></tr>
+      <tr><td>P0-2</td><td>会话即明文口令：Cookie 存口令原文，无签名无过期，非常量时间比对</td><td><code>api/admin/auth/route.ts:9-16</code>；<code>lib/auth.ts:12-17</code></td><td>Cookie 泄露 = 口令泄露，无失效机制</td></tr>
+      <tr><td>P0-3</td><td>评论默认公开，无限长/限频/存在性校验</td><td>schema Comment 模型；<code>api/comments/route.ts:4-18</code></td><td>垃圾内容直接上墙，审核无拦截点</td></tr>
+    </table></div>
+    <h3><span class="tag p1">P1</span> 功能与安全缺陷</h3>
+    <div class="tbl-scroll"><table>
+      <tr><th>ID</th><th>问题</th><th>证据</th></tr>
+      <tr><td>P1-1</td><td>生产构建失败（已于 2026-11-25 修复并复验）</td><td><code>tsconfig.json</code> 缺 target；<code>prisma/seed.ts:32,88</code></td></tr>
+      <tr><td>P1-2</td><td>Mermaid 永不渲染（无依赖、无 CDN，仅调用 <code>window.mermaid?.run()</code>）</td><td><code>components/PostContent.tsx:10-17</code></td></tr>
+      <tr><td>P1-3</td><td>Markdown 存储型 XSS 面（<code>rehype-raw</code> 无 sanitize）+ 上传无类型白名单</td><td><code>PostContent.tsx:23-26</code>；<code>api/admin/upload/route.ts:7-36</code></td></tr>
+      <tr><td>P1-4</td><td>备份不可恢复：无 restore、两套路径不一致、「完整备份」不含 uploads</td><td><code>api/admin/backup/route.ts</code>；<code>scripts/backup.ts:9-15</code></td></tr>
+      <tr><td>P1-5</td><td>路径拼装 <code>process.cwd()/..</code> 脆弱；图床通配 <code>https + **</code></td><td><code>api/files/[id]/download/route.ts:8,19</code>；<code>next.config.js:9-16</code></td></tr>
+    </table></div>
+    <h3><span class="tag p2">P2</span> 性能、可靠性与可维护性 · <span class="tag p3">P3</span> 体验与增长</h3>
+    <div class="tbl-scroll"><table>
+      <tr><th>ID</th><th>问题</th></tr>
+      <tr><td>P2-1</td><td>全站 <code>force-dynamic</code>，每请求查库且浏览量同步写库；搜索无分页上限</td></tr>
+      <tr><td>P2-2</td><td>无 sitemap/robots/OpenGraph/结构化数据，SEO 字段未被真正消费</td></tr>
+      <tr><td>P2-3</td><td>统计接口信任客户端上报 IP；<code>VisitLog</code> 无聚合与清理，长期膨胀</td></tr>
+      <tr><td>P2-4</td><td>测试不可复现（耦合本地库与已启动服务）、无 lint/CI/E2E、无 Python 依赖锁定</td></tr>
+      <tr><td>P2-5</td><td><code>import:posts</code> 指向不存在脚本；seed 校验顺序错误；README 与实际结构不符；typography 配置未装插件</td></tr>
+      <tr><td>P2-6</td><td>状态裸字符串、无查询索引、删除接口无错误处理（实测删不存在 id 返回 500）</td></tr>
+      <tr><td>P2-7</td><td><code>npm audit</code> 7 个漏洞（1 critical / 4 high），无定期审计机制</td></tr>
+      <tr><td>P3</td><td>无 TOC/相关推荐/RSS；侧边栏移动端后置；52 篇组学资产未产品化为学习路径</td></tr>
+    </table></div>
+  </section>
+
+  <section class="card" id="roadmap">
+    <h2><span class="no">04</span>版本路线图</h2>
+    <div class="road">
+      <div><div class="v">v1.0.1</div><div class="th">安全热修复</div><div class="d">API 鉴权、令牌会话、评论待审、上传白名单、Markdown 净化、Mermaid 接入。不改 schema。</div></div>
+      <div><div class="v">v1.1.0</div><div class="th">工程化与数据治理</div><div class="d">CI 门禁、lint、测试分层、备份恢复演练、索引/枚举迁移（先备份）。</div></div>
+      <div><div class="v">v1.2.0</div><div class="th">阅读体验与性能/SEO</div><div class="d">ISR 静态化、sitemap/OG、TOC 与相关推荐、搜索分页、双端打磨。</div></div>
+      <div><div class="v">v1.3.0</div><div class="th">内容增长与生信特色</div><div class="d">RSS、学习路径、资源包、CTA 埋点与统计聚合、导入流水线。</div></div>
+      <div><div class="v">v2.0.0</div><div class="th">平台化升级</div><div class="d">框架大版本、PostgreSQL、多管理员、对象存储、检索服务化评估。</div></div>
+    </div>
+    <h3>各版本关键任务与门禁</h3>
+    <div class="tbl-scroll"><table>
+      <tr><th>版本</th><th>关键任务（ID）</th><th>发布门禁</th></tr>
+      <tr><td><b>v1.0.1</b></td><td>S1 统一 <code>requireAdmin()</code> 覆盖全部管理 API；S2 令牌会话（随机令牌+过期+常量时间比对）；S3 评论限长限频+待审放行；S4 上传白名单+<code>rehype-sanitize</code>；S5 mermaid 动态加载；S6 收敛图床与未装依赖</td><td>未授权探针全 401/403；XSS/恶意上传用例被拒；构建与现有测试全绿</td></tr>
+      <tr><td><b>v1.1.0</b></td><td>E1 GitHub Actions（typecheck/lint/build/pytest/audit）；E2 ESLint+Prettier；E3 Vitest 单测+Playwright E2E；E4 统一备份目录+<code>scripts/restore.ts</code>+校验和；E5 枚举/索引迁移；E6 纠偏悬空脚本与 README</td><td>CI 空仓可复现全绿；备份→空库恢复演练一致；迁移前备份与回滚就位</td></tr>
+      <tr><td><b>v1.2.0</b></td><td>R1 公开页 ISR；R2 sitemap/robots/OG/JSON-LD；R3 TOC/进度/代码复制/相关推荐；R4 搜索分页与排序；R5 移动端资源区折叠与横滚复查；R6 Lighthouse 预算</td><td>移动 Lighthouse 性能 ≥85、SEO=100；360px/1440px 双视口验收记录</td></tr>
+      <tr><td><b>v1.3.0</b></td><td>C1 RSS；C2 跨系列学习路径；C3 资源包与大文件预研；C4 CTA 埋点+按日聚合；C5 导入幂等与 dry-run</td><td>重复导入结果一致有差异报告；统计聚合与日志抽查一致</td></tr>
+      <tr><td><b>v2.0.0</b></td><td>以立项时官方 LTS 定稿：框架升级、PostgreSQL 切换、多管理员、对象存储、检索服务化、容器化</td><td>预发全量回归；迁移与回滚各演练一次；指标不低于 v1.3 基线</td></tr>
+    </table></div>
+    <p class="sub">依赖：v1.0.1 独立先行；v1.1 的 CI 与备份恢复是后续各版前置门禁；v1.2 与 v1.3 可在 v1.1 后并行；v2.0 以 v1.3 指标基线立项。每项任务的涉及文件、验收与测试细节见同名 MD 文档 §6。</p>
+  </section>
+
+  <section class="card" id="gates">
+    <h2><span class="no">05</span>发布门禁与风险</h2>
+    <ul>
+      <li><strong>数据库：</strong>任何 schema/数据变更先备份并校验落盘，再在副本演练，最后执行；发布说明写明备份文件与回滚命令。</li>
+      <li><strong>安全：</strong>新增 API 必须声明鉴权与入参校验；上传/Markdown/认证改动必须附未授权与恶意输入回归用例。</li>
+      <li><strong>测试：</strong>新功能附正常/边界/失败三类测试；合并前 typecheck、lint、build 与相关测试全绿；页面改动附桌面+手机验收。</li>
+      <li><strong>回滚：</strong>每版保留上一构建与库备份；无迁移版本直接回退代码，有迁移版本先恢复库备份。</li>
+    </ul>
+    <div class="tbl-scroll"><table>
+      <tr><th>风险</th><th>触发点</th><th>缓解</th></tr>
+      <tr><td>鉴权改造锁死后台</td><td>v1.0.1 S1/S2</td><td>预发全链路演练；保留紧急口令通道并留痕</td></tr>
+      <tr><td>sanitize 误杀合法排版</td><td>v1.0.1 S4</td><td>抽 5 篇含表格/代码/图文章做渲染前后截图比对</td></tr>
+      <tr><td>迁移丢数据</td><td>v1.1 E5、v2.0</td><td>备份验恢复、副本演练、迁移评审三步缺一不可</td></tr>
+      <tr><td>静态化内容不刷新</td><td>v1.2 R1</td><td>后台发布触发再验证；保留手动刷新入口</td></tr>
+      <tr><td>框架升级回归面大</td><td>v2.0</td><td>以 v1.3 基线对照；预发全量 E2E；分阶段升级</td></tr>
+    </table></div>
+  </section>
+
+  <section class="card" id="appendix">
+    <h2><span class="no">06</span>附录：实测记录与环境配置</h2>
+    <div class="tbl-scroll"><table>
+      <tr><th>检查（2026-11-25）</th><th>结果</th></tr>
+      <tr><td>安装脚本连跑两遍（幂等）</td><td><span class="tag ok">通过</span> 首遍建空库、次遍跳过已存在库</td></tr>
+      <tr><td><code>npm run build</code> 修复前 → 后</td><td><span class="tag bad">TS2802 失败</span> → <span class="tag ok">通过</span>（路由多为动态，印证 P2-1）</td></tr>
+      <tr><td>未授权 <code>GET/POST /api/admin/posts</code></td><td><span class="tag bad">200 且建文成功</span> P0-1 实证（自检数据已删）</td></tr>
+      <tr><td><code>pytest test/ -q</code></td><td>6 passed / 1 failed（空库无种子数据，见 P2-4）</td></tr>
+      <tr><td>云端草案构建（install 实跑）</td><td><span class="tag ok">SUCCEEDED</span> npm ci 243 包、Prisma 生成、空库创建均落日志</td></tr>
+    </table></div>
+    <h3>本次配置的 Agent 环境</h3>
+    <div class="tbl-scroll"><table>
+      <tr><th>文件</th><th>作用</th></tr>
+      <tr><td><code>.cursor/environment.json</code></td><td>install=<code>scripts/cloud-agent-install.sh</code>；start=<code>.cursor/start.sh</code>；端口 30001</td></tr>
+      <tr><td><code>.cursor/rules/biojing-*.mdc</code></td><td>核心约定 / 安全红线 / 测试交付三份规则，含 DB 备份红线与端口登记</td></tr>
+      <tr><td><code>AGENTS.md</code>、<code>.nvmrc</code></td><td>快速开始与 Node 22 基线</td></tr>
+    </table></div>
+    <p class="sub">云端 DB 托管环境已按同一组脚本提案，待负责人在环境面板点保存后对后续 Agent 生效（建议在本计划 PR 合并后保存，使 main 分支包含安装脚本）。证据索引与逐项任务表见同目录 MD 文档。</p>
+  </section>
+</div>
+<footer>BioJING 版本升级计划 · 基线 main @ 4a6b575 · 2026-11-25 · 与同目录 <code>BioJING-版本升级计划-2026-11-25.md</code> 内容一致</footer>
+</body>
+</html>
