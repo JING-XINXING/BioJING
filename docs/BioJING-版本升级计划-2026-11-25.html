@@ -178,11 +178,11 @@
   <section class="card" id="roadmap">
     <h2><span class="no">04</span>版本路线图</h2>
     <div class="road">
-      <div><div class="v">v1.0.1</div><div class="th">安全热修复</div><div class="d">API 鉴权、令牌会话、评论待审、上传白名单、Markdown 净化、Mermaid 接入。不改 schema。</div></div>
-      <div><div class="v">v1.1.0</div><div class="th">工程化与数据治理</div><div class="d">CI 门禁、lint、测试分层、备份恢复演练、索引/枚举迁移（先备份）。</div></div>
-      <div><div class="v">v1.2.0</div><div class="th">阅读体验与性能/SEO</div><div class="d">ISR 静态化、sitemap/OG、TOC 与相关推荐、搜索分页、双端打磨。</div></div>
-      <div><div class="v">v1.3.0</div><div class="th">内容增长与生信特色</div><div class="d">RSS、学习路径、资源包、CTA 埋点与统计聚合、导入流水线。</div></div>
-      <div><div class="v">v2.0.0</div><div class="th">平台化升级</div><div class="d">框架大版本、PostgreSQL、多管理员、对象存储、检索服务化评估。</div></div>
+      <div><div class="v">v1.0.1 <span class="tag ok">已上线</span></div><div class="th">安全热修复</div><div class="d">API 鉴权、令牌会话、评论待审、上传白名单、Markdown 净化、Mermaid 接入。不改 schema。</div></div>
+      <div><div class="v">v1.1.0 <span class="tag ok">已上线</span></div><div class="th">工程化与数据治理</div><div class="d">CI 门禁、lint、测试分层、备份恢复演练、索引/枚举迁移（先备份）。</div></div>
+      <div><div class="v">v1.2.0 <span class="tag ok">已上线</span></div><div class="th">阅读体验与性能/SEO</div><div class="d">ISR 静态化、sitemap/OG、TOC 与相关推荐、搜索分页、双端打磨。</div></div>
+      <div><div class="v">v1.3.0 <span class="tag ok">已上线</span></div><div class="th">内容增长与生信特色</div><div class="d">RSS、学习路径、资源包、CTA 埋点与统计聚合、导入流水线。</div></div>
+      <div><div class="v">v2.0.0 <span class="tag p1">评估暂缓</span></div><div class="th">平台化升级</div><div class="d">框架大版本、PostgreSQL、多管理员、对象存储、检索服务化评估。</div></div>
     </div>
     <h3>各版本关键任务与门禁</h3>
     <div class="tbl-scroll"><table>
@@ -231,6 +231,7 @@
       <tr><td><code>.cursor/rules/biojing-*.mdc</code></td><td>核心约定 / 安全红线 / 测试交付三份规则，含 DB 备份红线与端口登记</td></tr>
       <tr><td><code>AGENTS.md</code>、<code>.nvmrc</code></td><td>快速开始与 Node 22 基线</td></tr>
     </table></div>
+    <p class="sub">实施进展（2026-11-25）：v1.0.1–v1.3.0 已逐版实现、测试、升版本号并推送同一 PR；v2.0 经独立 worktree 升级冒烟（Next 15/React 19）确认 3 处依赖冲突与动态路由 Promise 化改造面，立项触发条件未满足而暂缓，详见 MD 文档 §6.5。</p>
     <p class="sub">云端 DB 托管环境已按同一组脚本提案，待负责人在环境面板点保存后对后续 Agent 生效（建议在本计划 PR 合并后保存，使 main 分支包含安装脚本）。证据索引与逐项任务表见同目录 MD 文档。</p>
   </section>
 </div>
