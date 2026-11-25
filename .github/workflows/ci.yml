@@ -26,6 +26,11 @@ jobs:
         run: npm run lint
       - name: 单元测试
         run: npm run test:unit
+      - name: 初始化空库（供 ISR/sitemap 构建期查询）
+        run: |
+          cp .env.example .env
+          sed -i 's|^DATABASE_URL=.*|DATABASE_URL="file:./dev.db"|' .env
+          npx prisma db push --skip-generate
       - name: 生产构建
         run: npm run build
       - name: 脱敏与忽略规则测试（不依赖本地库）

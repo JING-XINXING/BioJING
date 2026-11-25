@@ -8,6 +8,9 @@ import Footer from '@/components/Footer';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:30001'),
+  openGraph: { type: 'website', locale: 'zh_CN', siteName: 'BioJING' },
+  twitter: { card: 'summary', site: 'BioJING' },
   title: {
     default: 'BioJING - 生信硬核科普',
     template: '%s | BioJING',

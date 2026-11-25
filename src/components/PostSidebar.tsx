@@ -37,7 +37,7 @@ const fileTypeIcons: Record<string, any> = {
 
 export default function PostSidebar({ post }: PostSidebarProps) {
   return (
-    <aside className="lg:w-72 shrink-0">
+    <aside className="w-full">
       <div className="sticky top-20 space-y-6">
         {/* Post info */}
         <div className="card p-4">

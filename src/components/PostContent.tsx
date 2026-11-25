@@ -6,6 +6,7 @@ import rehypeRaw from 'rehype-raw';
 import rehypeSlug from 'rehype-slug';
 import rehypeSanitize, { defaultSchema } from 'rehype-sanitize';
 import { useEffect } from 'react';
+import CodeBlock from './CodeBlock';
 
 /**
  * 净化策略：在默认白名单基础上放行代码高亮与 Mermaid 所需的 class，
@@ -43,6 +44,12 @@ export default function PostContent({ content }: { content: string }) {
       remarkPlugins={[remarkGfm]}
       rehypePlugins={[rehypeRaw, [rehypeSanitize, sanitizeSchema], rehypeHighlight, rehypeSlug]}
       components={{
+        pre({ children }) {
+          // Mermaid 代码块不包深色 pre/复制按钮，交给下方 code 组件渲染为图表容器
+          const child = Array.isArray(children) ? children[0] : children;
+          if (child?.props?.className?.includes('language-mermaid')) return <>{children}</>;
+          return <CodeBlock><pre>{children}</pre></CodeBlock>;
+        },
         code({ className, children, ...props }) {
           const match = /language-(\w+)/.exec(className || '');
           if (match && match[1] === 'mermaid') {

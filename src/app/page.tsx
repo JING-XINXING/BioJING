@@ -4,7 +4,8 @@ import PostCard from '@/components/PostCard';
 import SeriesCard from '@/components/SeriesCard';
 import { Dna, BookOpen, TrendingUp, Search } from 'lucide-react';
 
-export const dynamic = 'force-dynamic';
+// ISR：公开页每小时再验证（v1.2 R1）
+export const revalidate = 3600;
 
 export default async function HomePage() {
   const [featuredPosts, series, stats] = await Promise.all([

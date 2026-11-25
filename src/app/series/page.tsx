@@ -1,7 +1,8 @@
 import prisma from '@/lib/prisma';
 import SeriesCard from '@/components/SeriesCard';
 
-export const dynamic = 'force-dynamic';
+// ISR：公开页每小时再验证（v1.2 R1）
+export const revalidate = 3600;
 
 export default async function SeriesPage() {
   const series = await prisma.series.findMany({
