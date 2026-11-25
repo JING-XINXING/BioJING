@@ -44,8 +44,8 @@ cp .env.example .env
 npx prisma db push
 npx prisma generate
 
-# 4. 可选：导入博文（需设置 BIOJING_BLOG_DIR）
-npx tsx prisma/seed.ts
+# 4. 可选：导入博文（需设置 BIOJING_BLOG_DIR 指向 Markdown 根目录）
+BIOJING_BLOG_DIR=/path/to/blog npx tsx prisma/seed.ts
 
 # 5. 启动开发服务器（端口 30001）
 npm run dev
@@ -76,9 +76,10 @@ BioJING/
 │   ├── lib/                 # 工具库
 │   └── middleware.ts        # 认证中间件
 ├── scripts/
-│   └── backup.ts            # 备份脚本
-├── uploads/                 # 上传文件存储
-├── backups/                 # 备份文件存储
+│   ├── backup.ts            # 备份脚本（JSON+SHA-256，full 含 uploads 打包）
+│   └── restore.ts           # 恢复脚本（恢复前自动再备份当前库）
+├── uploads/                 # 上传文件存储（本地目录，不入库）
+├── backups/                 # 备份文件存储（本地目录，不入库）
 └── package.json
 ```
 
@@ -93,7 +94,13 @@ npx tsx scripts/backup.ts full
 
 # 配置 cron 定时任务（每天凌晨 2 点）
 # 0 2 * * * cd /path/to/BioJING && npx tsx scripts/backup.ts db
+
+# 从备份恢复（会先自动备份当前库到 backups/pre-restore-*.json）
+npx tsx scripts/restore.ts backups/<备份文件>.json --yes
 ```
+
+> 数据库变更红线：改 schema 前先跑一次完整备份并确认 `backups/` 落盘，再用
+> `npx prisma migrate dev` 生成迁移；不要对已有数据的库直接 `db push`。
 
 ## License
 

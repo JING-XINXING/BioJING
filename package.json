@@ -1,6 +1,6 @@
 {
   "name": "biojing",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev -p 30001 -H 0.0.0.0",
@@ -12,9 +12,11 @@
     "db:studio": "prisma studio",
     "db:migrate": "prisma migrate dev",
     "backup": "tsx scripts/backup.ts",
-    "import:posts": "tsx scripts/import-posts.ts",
     "typecheck": "tsc --noEmit",
-    "test": "python3 -m pytest test/ -q"
+    "test": "python3 -m pytest test/ -q",
+    "lint": "next lint",
+    "test:unit": "vitest run",
+    "restore": "tsx scripts/restore.ts"
   },
   "dependencies": {
     "@prisma/client": "^5.14.0",
@@ -36,13 +38,17 @@
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
-    "@types/node": "^20.14.0",
+    "@types/node": "^22.20.6",
     "@types/react": "^18.3.0",
     "@types/react-dom": "^18.3.0",
     "autoprefixer": "^10.4.0",
+    "eslint": "^8.57.1",
+    "eslint-config-next": "^14.2.35",
     "postcss": "^8.4.0",
+    "prettier": "^3.10.1",
     "tailwindcss": "^3.4.0",
     "tsx": "^4.11.0",
-    "typescript": "^5.4.0"
+    "typescript": "^5.4.0",
+    "vitest": "^5.1.1"
   }
 }

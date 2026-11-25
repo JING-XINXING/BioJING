@@ -17,15 +17,18 @@ interface WeekSpec {
   filename: string;
 }
 
-const weekSpecs: WeekSpec[] = JSON.parse(
-  fs.readFileSync(path.join(BLOG_DIR, 'test/week_specs.json'), 'utf8')
-);
-
 async function importPosts() {
+  // 先校验环境变量再读规格文件，未配置时给可读报错而非晦涩的 ENOENT
   if (!BLOG_DIR) {
     console.error('请设置环境变量 BIOJING_BLOG_DIR 指向博文 Markdown 根目录后再导入。');
     process.exit(1);
   }
+  const specsPath = path.join(BLOG_DIR, 'test/week_specs.json');
+  if (!fs.existsSync(specsPath)) {
+    console.error(`未找到博文规格文件：${specsPath}，请确认 BIOJING_BLOG_DIR 指向 Markdown 根目录。`);
+    process.exit(1);
+  }
+  const weekSpecs: WeekSpec[] = JSON.parse(fs.readFileSync(specsPath, 'utf8'));
   console.log('开始导入 52 篇博文...\n');
 
   // 1. Create all series
