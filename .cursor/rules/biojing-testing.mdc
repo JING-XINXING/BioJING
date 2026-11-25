@@ -1,0 +1,16 @@
+---
+description: BioJING 测试与交付约定（新功能测试方案、验收命令、双端检查）
+alwaysApply: false
+globs: src/**/*, prisma/*, scripts/*, test/*
+---
+
+# BioJING 测试与交付约定
+
+- 新功能模块必须同时给出测试方案：正常路径、边界、失败/未授权路径各至少一条，并说明运行命令。
+- 既有检查（改动后按影响范围运行，不要只跑改动文件）：
+  - 脱敏与忽略规则：`python3 -m pytest test/test_desensitization.py test/test_gitignore_secrets.py -q`
+  - 页面/数据冒烟：先 `bash scripts/cloud-agent-install.sh` 初始化，再启动服务后 `python3 -m pytest test/ -q`（`test_pages.py` 需要 `prisma/dev.db` 与 30001 端口服务）
+  - 类型与构建：`npm run typecheck`、`npm run build`
+- 双端验收：涉及页面/样式的改动，须同时检查桌面与手机视口（导航、表格/代码/Mermaid 横向滚动、侧边栏堆叠、触控目标），并在交付说明中注明所用视口与结果。
+- 数据库相关改动：先备份并在测试库验证迁移可回滚，再动开发库；交付说明写明备份文件路径与回滚命令。
+- 交付说明只讲代码改动点、原因与测试命令/结果；未被明确要求时不额外生成说明文档。
